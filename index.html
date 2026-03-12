@@ -1258,7 +1258,7 @@
     gemini: {
       name: 'Google Gemini',
       logo: '✨',
-      endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+      endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent',
       keyPrefix: 'AIza',
       instructions: '<ol>' +
         '<li>Go to <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> (opens in new tab)</li>' +
@@ -1362,18 +1362,33 @@
   };
 
   function buildPrompt(transcript) {
-    return 'Below is a raw spoken transcript from a screen recording or narration. ' +
-      'Please turn it into a clear, well-structured knowledge base article. ' +
-      'Guidelines:\n' +
-      '- Use a clear, descriptive title\n' +
-      '- Organize into logical sections with headings\n' +
-      '- Convert rambling speech into concise, step-by-step instructions where appropriate\n' +
-      '- Fix grammar and remove filler words (um, uh, like, you know, etc.)\n' +
-      '- Keep the original meaning and all important details\n' +
-      '- Use bullet points or numbered lists where helpful\n' +
-      '- Add a brief summary or purpose statement at the top\n' +
-      '- If the speaker describes a process, format it as numbered steps\n' +
-      '- Keep a professional but friendly tone\n\n' +
+    return 'You are an expert technical writer who creates clear, concise knowledge base articles for IT and support teams.\n\n' +
+      'I am giving you a raw spoken transcript from a screen recording or narration. ' +
+      'The transcript is long, messy, and full of filler words, repeated explanations, tangents, and verbal thinking-out-loud. ' +
+      'That is expected — your job is to distill it into a polished KB article.\n\n' +
+      'CREATE A KNOWLEDGE BASE ARTICLE following these rules:\n\n' +
+      '1. TITLE: Write a clear, specific title that tells the reader exactly what this article covers.\n\n' +
+      '2. PURPOSE: Start with 1-2 sentences explaining what this article is for and when someone would need it.\n\n' +
+      '3. STEP-BY-STEP INSTRUCTIONS: This is the core of the article. Convert the transcript into clear, numbered steps. Each step should:\n' +
+      '   - Start with an action verb (Click, Navigate, Select, Enter, etc.)\n' +
+      '   - Be one clear action per step\n' +
+      '   - Include the exact names of buttons, menus, fields, or screens in bold\n' +
+      '   - Include brief context only when necessary (e.g., "This is required because...")\n\n' +
+      '4. FORMATTING:\n' +
+      '   - Use headings to break the article into logical sections\n' +
+      '   - Use numbered lists for sequential steps\n' +
+      '   - Use bullet points for non-sequential information (tips, notes, options)\n' +
+      '   - Bold important UI elements, field names, and key terms\n' +
+      '   - Keep paragraphs short — 2-3 sentences max\n\n' +
+      '5. TONE: Professional but approachable. Write like you are explaining to a competent coworker, not a beginner. Be direct.\n\n' +
+      '6. RUTHLESSLY CUT:\n' +
+      '   - All filler words (um, uh, like, you know, so, basically, actually, etc.)\n' +
+      '   - Repeated explanations — say it once, clearly\n' +
+      '   - Tangents and off-topic commentary\n' +
+      '   - Unnecessary hedging or qualifiers\n' +
+      '   - Do NOT pad the article with fluff to make it longer\n\n' +
+      '7. KEEP: All important details, warnings, tips, edge cases, and specific values/settings mentioned in the transcript. Do not lose any critical information.\n\n' +
+      '8. If the speaker mentions common pitfalls or tips, add a "Tips" or "Good to Know" section at the end.\n\n' +
       '--- RAW TRANSCRIPT ---\n' + transcript + '\n--- END TRANSCRIPT ---';
   }
 
