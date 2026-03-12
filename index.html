@@ -520,6 +520,77 @@
     .file-icon { order: 1; }
     .file-download-btn { order: 3; width: 100%; justify-content: center; }
   }
+
+  /* WARNING MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .modal-overlay.visible {
+    display: flex;
+  }
+
+  .modal-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    text-align: center;
+    animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .modal-icon {
+    font-size: 2.5rem;
+    margin-bottom: 16px;
+  }
+
+  .modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+  }
+
+  .modal-message {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .modal-actions .btn {
+    padding: 12px 28px;
+    font-size: 0.9rem;
+  }
+
+  .btn-danger {
+    background: var(--red);
+    color: white;
+    box-shadow: 0 4px 15px var(--red-glow);
+  }
+
+  .btn-danger:hover { background: #ff6b7a; transform: translateY(-1px); }
+
 </style>
 </head>
 <body>
@@ -599,12 +670,30 @@
       <button class="btn btn-primary" onclick="downloadAll()">
         <i class="fas fa-download"></i> Download All
       </button>
-      <button class="btn btn-secondary" onclick="resetApp()">
-        <i class="fas fa-redo"></i> Re-record
+      <button class="btn btn-secondary" onclick="handleNewRecording()">
+        <i class="fas fa-plus"></i> New Recording
       </button>
     </div>
   </div>
 </div>
+
+
+  <!-- WARNING MODAL -->
+  <div class="modal-overlay" id="warning-modal">
+    <div class="modal-box">
+      <div class="modal-icon">⚠️</div>
+      <div class="modal-title">Start New Recording?</div>
+      <div class="modal-message">You have files that haven't been downloaded yet. If you continue, they will be lost and can't be recovered.</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeWarningModal()">
+          <i class="fas fa-arrow-left"></i> Go Back
+        </button>
+        <button class="btn btn-danger" onclick="confirmNewRecording()">
+          <i class="fas fa-redo"></i> Continue
+        </button>
+      </div>
+    </div>
+  </div>
 
 <div class="toast" id="toast"></div>
 
@@ -1137,6 +1226,67 @@
       canvas.height = canvas.offsetHeight * 2;
     }
   });
+
+  // ===== DOWNLOAD TRACKING & WARNING MODAL =====
+  var txtDownloaded = false;
+  var mediaDownloaded = false;
+
+  // Override download functions to track downloads
+  var _origDownloadTxt = downloadTxt;
+  downloadTxt = function() {
+    _origDownloadTxt();
+    txtDownloaded = true;
+  };
+
+  var _origDownloadMedia = downloadMedia;
+  downloadMedia = function() {
+    _origDownloadMedia();
+    mediaDownloaded = true;
+  };
+
+  var _origDownloadAll = downloadAll;
+  downloadAll = function() {
+    _origDownloadAll();
+    txtDownloaded = true;
+    mediaDownloaded = true;
+  };
+
+  function handleNewRecording() {
+    var allDownloaded = txtDownloaded && (mediaBlob ? mediaDownloaded : true);
+    if (allDownloaded) {
+      resetApp();
+    } else {
+      document.getElementById('warning-modal').classList.add('visible');
+    }
+  }
+
+  function closeWarningModal() {
+    document.getElementById('warning-modal').classList.remove('visible');
+  }
+
+  function confirmNewRecording() {
+    closeWarningModal();
+    resetApp();
+  }
+
+  // Reset download tracking when resetting app
+  var _origResetApp = resetApp;
+  resetApp = function() {
+    txtDownloaded = false;
+    mediaDownloaded = false;
+    _origResetApp();
+  };
+
+  // Close modal on overlay click
+  document.getElementById('warning-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeWarningModal();
+  });
+
+  // Close modal on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeWarningModal();
+  });
+
 </script>
 
 </body>
